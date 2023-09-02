@@ -26,10 +26,12 @@ API_ENDPOINT = "https://www.ticketlouvre.fr/louvre/b2c/RemotingService.cfc?metho
 
 timestamp = st.empty()
 
-month = st.selectbox("Select Month",(10, 9, 8))
+current_month = datetime.now().month
+
+month = st.selectbox("Select Month",(current_month + 2, current_month + 1, current_month))
 inGroup = st.selectbox("Group or Inidividual", ("group", "individual"))
 date_timelist_dict = {}
-TIMESLOT_SET = False
+TIMESLOT_SET = None
 
 
 def query_time_list(date_string):
@@ -40,6 +42,12 @@ def query_time_list(date_string):
         'eventName': 'performance.read.nt',
         'selectedDate': date_string
     }
+    if inGroup == "group":
+        query_body = {
+            **query_body,
+            'eventCode': 'GA',
+            'eventAk': 'LVR.EVN21'
+        }
     r = requests.post(url = API_ENDPOINT, data = query_body)
     # extracting response text
     response_dict = json.loads(r.text)
@@ -75,13 +83,13 @@ def query_data(month, containerlist):
 
     date_list = response_dict['api']['result']['dateList']
     date_string_list = [date['date'] for date in date_list]
-
+    
     # get timeslot of each date
-    if not TIMESLOT_SET:
+    if TIMESLOT_SET != (month, inGroup):
         with st.spinner(text="fetching timeslot list"):
             for date_string in date_string_list:
                 date_timelist_dict[date_string] = query_time_list(date_string)
-            TIMESLOT_SET = True
+            TIMESLOT_SET = (month, inGroup)
 
     for index, dateObj in enumerate(date_list):
         with container_list[index].container() as placeholder:
