@@ -28,7 +28,12 @@ timestamp = st.empty()
 
 current_month = datetime.now().month
 
-month = st.selectbox("Select Month",(current_month + 2, current_month + 1, current_month))
+months = [current_month + 2, current_month + 1, current_month]
+
+if datetime.now().day >= 15:
+    months.insert(0, current_month + 3)
+
+month = st.selectbox("Select Month", months)
 inGroup = st.selectbox("Group or Inidividual", ("group", "individual"))
 date_timelist_dict = {}
 TIMESLOT_SET = None
@@ -84,6 +89,9 @@ def query_data(month, containerlist):
     date_list = response_dict['api']['result']['dateList']
     date_string_list = [date['date'] for date in date_list]
     
+    if len(date_list) == 0:
+        containerlist[0].text(f"Tickets for {month} has not yet been released!")
+        
     # get timeslot of each date
     if TIMESLOT_SET != (month, inGroup):
         with st.spinner(text="fetching timeslot list"):
