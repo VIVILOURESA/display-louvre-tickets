@@ -27,11 +27,14 @@ API_ENDPOINT = "https://www.ticketlouvre.fr/louvre/b2c/RemotingService.cfc?metho
 timestamp = st.empty()
 
 current_month = datetime.now().month
+current_year = datetime.now().year
 
 months = [current_month + 2, current_month + 1, current_month]
 
 if datetime.now().day >= 15:
     months.insert(0, current_month + 3)
+
+months = [ month if month <= 12 else month - 12 for month in months]
 
 month = st.selectbox("Select Month", months)
 inGroup = st.selectbox("Group or Inidividual", ("group", "individual"))
@@ -66,14 +69,14 @@ def query_data(month, containerlist):
     # data to be sent to api
     global TIMESLOT_SET
     data = {
-        'year': 2023,
+        'year': current_year if month >= current_month else current_year + 1,
         'month': month,
         'eventCode': 'GA',
         'eventAk':'LVR.EVN21',
         'eventName': 'date.list.nt',
         'productId': 2399
         } if inGroup == "group" else {
-        'year': 2023,
+        'year':  current_year if month >= current_month else current_year + 1,
         'month': month,
         'eventCode': 'GA',
         'eventAk':'LVR.EVN15',
