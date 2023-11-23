@@ -18,8 +18,10 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+
 def print_color(string, color, end='\n'):
     print(f"{color}{string}{bcolors.ENDC}", end=end)
+
 
 # defining the api-endpoint
 API_ENDPOINT = "https://www.ticketlouvre.fr/louvre/b2c/RemotingService.cfc?method=doJson"
@@ -33,8 +35,9 @@ months = [current_month + 2, current_month + 1, current_month]
 
 if datetime.now().day >= 15:
     months.insert(0, current_month + 3)
+    months.insert(0, current_month + 4)
 
-months = [ month if month <= 12 else month - 12 for month in months]
+months = [month if month <= 12 else month - 12 for month in months]
 
 month = st.selectbox("Select Month", months)
 inGroup = st.selectbox("Group or Inidividual", ("group", "individual"))
@@ -56,14 +59,15 @@ def query_time_list(date_string):
             'eventCode': 'GA',
             'eventAk': 'LVR.EVN21'
         }
-    r = requests.post(url = API_ENDPOINT, data = query_body)
+    r = requests.post(url=API_ENDPOINT, data=query_body)
     # extracting response text
     response_dict = json.loads(r.text)
 
     performance_list = response_dict['api']['result']['performanceList']
-    time_list = [ perf['perfTime'] for perf in performance_list ]
+    time_list = [perf['perfTime'] for perf in performance_list]
 
     return time_list
+
 
 def query_data(month, containerlist):
     # data to be sent to api
@@ -72,29 +76,30 @@ def query_data(month, containerlist):
         'year': current_year if month >= current_month else current_year + 1,
         'month': month,
         'eventCode': 'GA',
-        'eventAk':'LVR.EVN21',
+        'eventAk': 'LVR.EVN21',
         'eventName': 'date.list.nt',
         'productId': 2399
-        } if inGroup == "group" else {
+    } if inGroup == "group" else {
         'year':  current_year if month >= current_month else current_year + 1,
         'month': month,
         'eventCode': 'GA',
-        'eventAk':'LVR.EVN15',
+        'eventAk': 'LVR.EVN15',
         'eventName': 'date.list.nt',
-        }
+    }
 
     # sending post request and saving response as response object
-    r = requests.post(url = API_ENDPOINT, data = data)
+    r = requests.post(url=API_ENDPOINT, data=data)
 
     # extracting response text
     response_dict = json.loads(r.text)
 
     date_list = response_dict['api']['result']['dateList']
     date_string_list = [date['date'] for date in date_list]
-    
+
     if len(date_list) == 0:
-        containerlist[0].text(f"Tickets for {month} has not yet been released!")
-        
+        containerlist[0].text(
+            f"Tickets for {month} has not yet been released!")
+
     # get timeslot of each date
     if TIMESLOT_SET != (month, inGroup):
         with st.spinner(text="fetching timeslot list"):
@@ -109,9 +114,11 @@ def query_data(month, containerlist):
 
             for i, timeslot in enumerate(dateObj['performanceRefList']):
                 if timeslot['available'] > 0:
-                        available_timeslots.append({"index": i, "timeslot": timeslot['available']})
+                    available_timeslots.append(
+                        {"index": i, "timeslot": timeslot['available']})
 
-            print_color(f"{dateObj['date']} {weekday.day_name()}", bcolors.OKBLUE, end=" ")
+            print_color(
+                f"{dateObj['date']} {weekday.day_name()}", bcolors.OKBLUE, end=" ")
 
             datestringAvail = f"**:blue[{dateObj['date']} {weekday.day_name()}]**"
 
@@ -127,12 +134,14 @@ def query_data(month, containerlist):
             t = ""
             for i, timeslot in enumerate(available_timeslots):
                 index = timeslot['index']
-                print(f"[{date_timelist_dict[dateObj['date']][index]}]", end= " " if i % 4 else "\n")
+                print(f"[{date_timelist_dict[dateObj['date']][index]}]",
+                      end=" " if i % 4 else "\n")
                 t += f"[{date_timelist_dict[dateObj['date']][index]}]"
             print("")
             st.write(t)
 
-container_list = [ st.empty() for _ in range(31) ]
+
+container_list = [st.empty() for _ in range(31)]
 
 while 1:
     timestamp.text(f"Updated at {datetime.now()}")
