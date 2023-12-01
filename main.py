@@ -31,10 +31,10 @@ timestamp = st.empty()
 current_month = datetime.now().month
 current_year = datetime.now().year
 
-months = [current_month + 2, current_month + 1, current_month]
+months = [current_month + 3, current_month +
+          2, current_month + 1, current_month]
 
 if datetime.now().day >= 15:
-    months.insert(0, current_month + 3)
     months.insert(0, current_month + 4)
 
 months = [month if month <= 12 else month - 12 for month in months]
