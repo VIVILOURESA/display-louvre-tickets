@@ -69,6 +69,24 @@ def query_time_list(date_string):
     return time_list
 
 
+def query_timeslot_availability(date, performanceId, performanceAk):
+    query_body = {
+        'eventName': 'ticket.list',
+        'dateFrom': date,
+        'eventCode': 'GA',
+        'performanceId': performanceId,
+        'priceTableId': '1',
+        'performanceAk': performanceAk
+    }
+    r = requests.post(url=API_ENDPOINT, data=query_body)
+    # extracting response text
+    response_dict = json.loads(r.text)
+    product_list = response_dict['api']['result']['product.list']
+    if len(product_list) > 2 and product_list[1]['available'] > 0:
+        return True
+    return False
+
+
 def query_data(month, containerlist):
     # data to be sent to api
     global TIMESLOT_SET
@@ -94,7 +112,6 @@ def query_data(month, containerlist):
 
     date_list = response_dict['api']['result']['dateList']
     date_string_list = [date['date'] for date in date_list]
-    print(response_dict)
     if len(date_list) == 0:
         containerlist[0].text(
             f"Tickets for {month} has not yet been released!")
@@ -105,14 +122,22 @@ def query_data(month, containerlist):
             for date_string in date_string_list:
                 date_timelist_dict[date_string] = query_time_list(date_string)
             TIMESLOT_SET = (month, inGroup)
-
+    # get per date object
+        # eventName
+        # dateFrom
+        # eventCode
+        # performanceId
+        # priceTableId
+        # performanceAk
+        # performanceId
+        # to obtain per date object
     for index, dateObj in enumerate(date_list):
         with container_list[index].container() as placeholder:
             weekday = pd.Timestamp(dateObj['date'])
             available_timeslots = list()
 
             for i, timeslot in enumerate(dateObj['performanceRefList']):
-                if timeslot['available'] > 0:
+                if query_timeslot_availability(date=dateObj['date'], performanceId=timeslot['id'], performanceAk=timeslot['ak']):
                     available_timeslots.append(
                         {"index": i, "timeslot": timeslot['available']})
 
