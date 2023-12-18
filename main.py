@@ -78,7 +78,6 @@ def query_data(month, containerlist):
         'eventCode': 'GA',
         'eventAk': 'LVR.EVN21',
         'eventName': 'date.list.nt',
-        'productId': 2399
     } if inGroup == "group" else {
         'year':  current_year if month >= current_month else current_year + 1,
         'month': month,
@@ -95,7 +94,7 @@ def query_data(month, containerlist):
 
     date_list = response_dict['api']['result']['dateList']
     date_string_list = [date['date'] for date in date_list]
-
+    print(response_dict)
     if len(date_list) == 0:
         containerlist[0].text(
             f"Tickets for {month} has not yet been released!")
